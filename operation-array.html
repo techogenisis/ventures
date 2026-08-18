@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OPERATION ARRAY</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#F8F3FF;
+  --bg2:#EAFBF3;
+  --ink:#4A4460;
+  --ink-soft:#7A7290;
+  --panel:#F4EFFC;
+  --panel-solid:#F4EFFC;
+  --paper:#FFFFFF;
+  --paper-dim:#F1E9FB;
+  --stamp:#E8768C;
+  --amber:#FFC96B;
+  --amber-deep:#C9862E;
+  --sky:#6FB3D9;
+  --mint:#6FCF97;
+  --gold:#B8934A;
+  --line:#E4DBF5;
+  --text-dim:#9A93B3;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: linear-gradient(150deg, var(--bg1) 0%, var(--bg2) 100%);
+  color:var(--ink);
+  font-family:'IBM Plex Sans',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+  display:flex;
+  flex-direction:column;
+}
+body::before{
+  content:"";
+  position:fixed; inset:0;
+  background-image: radial-gradient(rgba(122,114,144,0.06) 1px, transparent 1px);
+  background-size: 4px 4px;
+  pointer-events:none;
+  z-index:0;
+}
+h1,h2,h3,.stencil{ font-family:'Special Elite', monospace; letter-spacing:0.5px; }
+.mono{ font-family:'IBM Plex Mono', monospace; }
+::selection{ background:var(--stamp); color:#fff; }
+button{ font-family:'IBM Plex Sans',sans-serif; cursor:pointer; }
+input{ font-family:'IBM Plex Mono',monospace; }
+
+.screen{ display:none; position:relative; z-index:1; }
+.screen.active{ flex:1 0 auto; }
+
+/* ---------- LOGIN ---------- */
+#screen-login{ display:flex; align-items:center; justify-content:center; padding:24px; }
+.dossier-card{
+  width:100%; max-width:460px;
+  background:var(--paper);
+  color:var(--ink);
+  border-radius:14px;
+  padding:36px 32px 28px;
+  box-shadow:0 30px 60px -25px rgba(122,110,170,0.35), 0 0 0 1px rgba(122,110,170,0.08);
+  position:relative;
+  transform:rotate(-0.4deg);
+}
+.dossier-card::after{
+  content:"CLASSIFIED";
+  position:absolute; top:18px; right:-8px;
+  font-family:'Special Elite',monospace;
+  color:var(--stamp);
+  border:3px solid var(--stamp);
+  padding:4px 10px;
+  transform:rotate(8deg);
+  font-size:13px;
+  letter-spacing:2px;
+  opacity:0.8;
+  border-radius:8px;
+  background:#fff;
+}
+.eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:3px; color:var(--stamp); text-transform:uppercase; margin:0 0 6px; }
+.dossier-card h1{ font-size:26px; margin:0 0 4px; line-height:1.25; color:var(--ink); }
+.dossier-card p.sub{ font-size:13px; color:var(--ink-soft); margin:0 0 22px; }
+.field{ margin-bottom:16px; }
+.field label{ display:block; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px; font-family:'IBM Plex Mono',monospace; }
+.field input{
+  width:100%; padding:11px 12px; border:1.5px solid var(--line); background:#FBF9FE;
+  border-radius:8px; font-size:15px; color:var(--ink);
+}
+.field input:focus{ outline:none; border-color:var(--stamp); }
+.btn{
+  border:none; border-radius:8px; padding:13px 20px; font-size:14px; font-weight:600;
+  letter-spacing:1px; text-transform:uppercase; font-family:'IBM Plex Mono',monospace;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.btn:active{ transform:translateY(1px); }
+.btn:disabled{ opacity:0.5; cursor:not-allowed; }
+.btn-primary{ background:var(--stamp); color:#fff; width:100%; padding:14px; font-size:14px; }
+.btn-primary:hover{ box-shadow:0 10px 24px -10px rgba(232,118,140,0.6); }
+.codename-preview{
+  margin-top:6px; background:var(--paper-dim); border:1px dashed #D8C8F0; border-radius:8px;
+  padding:12px 14px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--ink); display:none;
+}
+.codename-preview b{ color:var(--stamp); font-size:15px; }
+.hq-link{ display:block; text-align:center; margin-top:18px; font-size:11px; color:var(--ink-soft); letter-spacing:1px; text-decoration:none; font-family:'IBM Plex Mono',monospace; }
+.hint-text{ font-size:11.5px; color:var(--ink-soft); margin-top:-8px; margin-bottom:16px; line-height:1.5; }
+
+.venture-footer{
+  position:static; flex:0 0 auto; width:100%; text-align:center; z-index:3;
+  font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:2px;
+  color:#B4ACC9; padding:14px 0 20px; user-select:none;
+}
+.venture-footer b{ color:#8A82A3; letter-spacing:2px; }
+
+.egg-overlay{
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:80;
+  background:rgba(110,100,140,0.35); backdrop-filter:blur(4px);
+}
+.egg-card{
+  background:var(--paper); color:var(--ink); max-width:420px; padding:30px 28px; border-radius:16px;
+  text-align:center; box-shadow:0 30px 70px -25px rgba(90,80,130,0.45);
+  transform:scale(0.7) rotate(-3deg); opacity:0; animation:eggPop .5s cubic-bezier(.2,1.4,.4,1) forwards;
+}
+@keyframes eggPop{ to{ transform:scale(1) rotate(-1deg); opacity:1; } }
+.egg-card .icon{ font-size:40px; margin-bottom:8px; }
+.egg-card h3{ margin:0 0 10px; font-size:19px; color:var(--stamp); }
+.egg-card p{ font-size:13.5px; line-height:1.6; color:var(--ink); margin:0 0 16px; }
+.egg-card button{ background:var(--stamp); color:#fff; border:none; padding:10px 20px; border-radius:8px; font-size:12px; letter-spacing:1px; font-family:'IBM Plex Mono',monospace; }
+
+/* ---------- MAIN APP ---------- */
+#screen-main{ display:none; padding:0; }
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 26px; border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,0.75); backdrop-filter:blur(8px);
+  position:sticky; top:0; z-index:5;
+}
+.agent-id{ font-size:12px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace; }
+.agent-id b{ color:var(--stamp); font-family:'Special Elite',monospace; font-size:15px; letter-spacing:0.5px; }
+.progress-wrap{ display:flex; align-items:center; gap:10px; }
+.progress-track{ width:160px; height:6px; background:var(--paper-dim); border-radius:3px; overflow:hidden; }
+.progress-fill{ height:100%; background:linear-gradient(90deg,var(--stamp),var(--amber)); transition:width .4s ease; }
+
+.layout{ display:flex; max-width:1100px; margin:0 auto; min-height:calc(100vh - 65px); }
+.sidebar{ width:250px; flex-shrink:0; padding:22px 14px; border-right:1px solid var(--line); }
+.sidebar h3{ font-size:11px; letter-spacing:2px; color:var(--text-dim); text-transform:uppercase; margin:0 0 14px 10px; font-family:'IBM Plex Mono',monospace; }
+.case-item{
+  display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:8px; margin-bottom:4px;
+  font-size:13px; color:var(--text-dim); cursor:default; border-left:2px solid transparent;
+}
+.case-item .num{ font-family:'IBM Plex Mono',monospace; font-size:11px; width:18px; opacity:0.7;}
+.case-item.done{ color:var(--ink); }
+.case-item.done .num::after{ content:"✓"; color:var(--mint); margin-left:2px; }
+.case-item.locked{ opacity:0.45; }
+.case-item.current{ background:var(--paper-dim); border-left:2px solid var(--stamp); color:var(--ink); cursor:pointer;}
+.case-item.unlocked-nav{ cursor:pointer; }
+.case-item.unlocked-nav:hover{ background:var(--paper-dim); }
+
+.content{ flex:1; padding:34px 40px 60px; max-width:720px; }
+.mission-tag{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; color:var(--stamp); text-transform:uppercase; margin-bottom:8px; }
+.content h1{ font-size:30px; margin:0 0 4px; color:var(--ink); }
+.content .subtitle{ color:var(--text-dim); font-size:14px; margin-bottom:26px; }
+
+.brief-box{
+  background:var(--panel-solid); border:1px solid var(--line); border-left:3px solid var(--amber);
+  border-radius:12px; padding:18px 20px; margin-bottom:22px;
+}
+.brief-box h4{ margin:0 0 10px; font-size:12px; letter-spacing:2px; color:var(--amber-deep); text-transform:uppercase; font-family:'IBM Plex Mono',monospace; }
+.brief-box p, .brief-box li{ font-size:14.5px; line-height:1.65; color:var(--ink); margin:0 0 8px; }
+.brief-box ul{ margin:0; padding-left:20px; }
+
+.task-box{
+  background:#EAF6FF; border:1px solid #D6E9F7; border-radius:12px; padding:20px 22px; margin-bottom:20px;
+}
+.task-box h4{ margin:0 0 10px; font-size:12px; letter-spacing:2px; color:#3E7FA8; text-transform:uppercase; font-family:'IBM Plex Mono',monospace; }
+.task-box p{ font-size:14.5px; line-height:1.6; color:var(--ink); margin:0 0 10px; }
+.code-spec{
+  background:#3A3556; border:1px solid #4C4670; border-radius:10px; padding:14px 16px; font-size:13px;
+  color:#A8E6C1; font-family:'IBM Plex Mono',monospace; white-space:pre; overflow-x:auto; line-height:1.55; margin-top:10px;
+}
+
+.hint-box{
+  background:#FFF7E6; border:1px solid #F5E3B8; border-radius:12px; padding:4px 18px; margin-bottom:20px;
+}
+.hint-box summary{
+  cursor:pointer; padding:12px 0; font-size:13.5px; font-weight:600; color:var(--amber-deep);
+  font-family:'IBM Plex Mono',monospace; list-style:none; outline:none;
+}
+.hint-box summary::-webkit-details-marker{ display:none; }
+.hint-box summary::before{ content:"▸ "; }
+.hint-box[open] summary::before{ content:"▾ "; }
+.hint-box p{ font-size:13.5px; line-height:1.6; color:var(--ink); margin:0 0 14px; }
+
+.answer-row{ display:flex; gap:10px; margin-top:6px; }
+.answer-row input{
+  flex:1; padding:12px 14px; background:#fff; border:1.5px solid var(--line); border-radius:8px;
+  color:var(--ink); font-size:15px;
+}
+.answer-row input:focus{ outline:none; border-color:var(--amber); }
+.btn-submit{ background:var(--amber); color:#5A3E12; padding:0 22px; font-size:13px; border-radius:8px; }
+.btn-submit:hover{ box-shadow:0 8px 18px -8px rgba(255,201,107,0.7); }
+
+.feedback{ margin-top:12px; font-size:13.5px; font-family:'IBM Plex Mono',monospace; display:none; padding:10px 14px; border-radius:8px; }
+.feedback.ok{ display:block; background:#E7F8EF; color:#2F855A; border:1px solid #C9EDD8; }
+.feedback.err{ display:block; background:#FDEAEC; color:#B2455A; border:1px solid #F5CDD3; }
+
+.next-btn{ margin-top:22px; background:var(--stamp); color:#fff; padding:13px 24px; border-radius:8px; font-size:13px; letter-spacing:1px; display:none; }
+
+.stamp-overlay{
+  position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:50;
+  background:rgba(110,100,140,0.3); backdrop-filter:blur(3px);
+}
+.stamp-overlay .stamp{
+  font-family:'Special Elite',monospace; font-size:52px; color:var(--stamp);
+  border:6px solid var(--stamp); padding:18px 34px; border-radius:16px; background:#fff;
+  transform:rotate(-8deg) scale(0.6); opacity:0;
+  animation:stampIn .55s cubic-bezier(.2,1.4,.4,1) forwards;
+  text-transform:uppercase; letter-spacing:3px;
+}
+@keyframes stampIn{ 0%{ transform:rotate(-8deg) scale(2); opacity:0;} 60%{ opacity:1;} 100%{ transform:rotate(-8deg) scale(1); opacity:1;} }
+
+/* ---------- INSTRUCTOR ---------- */
+#screen-instructor-login{ display:flex; align-items:center; justify-content:center; padding:24px;}
+#screen-instructor{ display:none; max-width:900px; margin:0 auto; padding:30px 24px 60px; }
+.hq-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.hq-header h1{ color:var(--ink); font-size:26px; margin:0; }
+table.leaderboard{ width:100%; border-collapse:collapse; font-size:13.5px; background:#fff; border-radius:12px; overflow:hidden; }
+table.leaderboard th{ text-align:left; padding:10px 12px; color:var(--amber-deep); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--line); }
+table.leaderboard td{ padding:10px 12px; border-bottom:1px solid var(--line); color:var(--ink); }
+table.leaderboard tr:hover td{ background:var(--paper-dim); }
+.mini-btn{ font-size:11px; padding:6px 10px; border-radius:6px; border:1px solid var(--line); background:#fff; color:var(--text-dim); margin-right:6px; }
+.mini-btn:hover{ color:var(--ink); border-color:var(--stamp); }
+.badge{ padding:2px 8px; border-radius:10px; font-size:11px; font-family:'IBM Plex Mono',monospace; }
+.badge.complete{ background:#E7F8EF; color:#2F855A; }
+.badge.progress{ background:#FFF3DE; color:var(--amber-deep); }
+.back-link{ color:var(--text-dim); font-size:12px; text-decoration:none; font-family:'IBM Plex Mono',monospace; }
+
+/* ---------- COMPLETE ---------- */
+#screen-complete{ display:none; align-items:center; justify-content:center; padding:24px; text-align:center; }
+.cert{ background:var(--paper); color:var(--ink); padding:50px 46px; max-width:560px; border-radius:16px; box-shadow:0 30px 60px -25px rgba(122,110,170,0.35); }
+.cert h1{ font-size:28px; margin:6px 0; }
+.cert .gold-seal{ font-size:44px; }
+
+@media(max-width:760px){
+  .layout{ flex-direction:column; }
+  .sidebar{ width:100%; border-right:none; border-bottom:1px solid var(--line); display:flex; overflow-x:auto; gap:6px; padding:14px; }
+  .sidebar h3{ display:none; }
+  .case-item{ flex-direction:column; gap:2px; font-size:10px; white-space:nowrap; }
+  .content{ padding:24px 20px 50px; }
+  .hq-header{ flex-direction:column; align-items:flex-start; gap:14px; }
+  .hq-header > div:last-child{ display:flex; flex-wrap:wrap; gap:8px; }
+  .hq-header > div:last-child .mini-btn{ margin-right:0; }
+}
+
+@media(max-width:600px){
+  .topbar{ flex-direction:column; align-items:flex-start; gap:10px; padding:14px 18px; }
+  .progress-track{ width:100%; }
+  .progress-wrap{ width:100%; }
+}
+
+@media(max-width:480px){
+  .dossier-card{ padding:28px 22px 24px; border-radius:10px; }
+  .dossier-card h1{ font-size:22px; }
+  .dossier-card::after{ font-size:11px; padding:3px 8px; top:14px; }
+  .answer-row{ flex-direction:column; }
+  .btn-submit{ padding:13px; }
+  .content h1{ font-size:24px; }
+  .brief-box, .task-box{ padding:16px 16px; }
+  .code-spec{ font-size:12px; padding:12px; }
+  .cert{ padding:34px 24px; }
+  #screen-instructor{ padding:20px 16px 40px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="screen active" id="screen-login">
+  <div class="dossier-card">
+    <p class="eyebrow">Field Recruitment · Case File 7742</p>
+    <h1>OPERATION ARRAY</h1>
+    <p class="sub">You've been recruited into the Array Intelligence Division. Complete your registration to receive your cover identity.</p>
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="in-name" placeholder="e.g. Priya Sharma" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Register Number</label>
+      <input type="text" id="in-reg" placeholder="e.g. 21CS045" autocomplete="off">
+    </div>
+    <div class="codename-preview" id="codename-preview"></div>
+    <button class="btn btn-primary" id="btn-enlist" style="margin-top:16px;">Generate Cover Identity →</button>
+    <a href="#" class="hq-link" id="link-hq">HQ ACCESS (Instructor)</a>
+  </div>
+</div>
+
+<!-- ============ INSTRUCTOR LOGIN ============ -->
+<div class="screen" id="screen-instructor-login">
+  <div class="dossier-card" style="transform:none;">
+    <p class="eyebrow" id="hq-eyebrow">Restricted</p>
+    <h1 id="hq-title">HQ Access</h1>
+    <p class="sub" id="hq-sub">Instructor passcode required to view the live mission board.</p>
+    <div class="field">
+      <label id="hq-label">Passcode</label>
+      <input type="password" id="in-passcode" placeholder="••••••">
+    </div>
+    <p class="hint-text" id="hq-hint" style="display:none;">This is stored only as a scrambled code, never as plain text — nobody reading this page's code can see it.</p>
+    <button class="btn btn-primary" id="btn-hq-enter">Enter HQ →</button>
+    <p class="hint-text" id="hq-lockout" style="display:none;color:#B2455A;"></p>
+    <a href="#" class="hq-link" id="link-back-login">← Back to agent login</a>
+  </div>
+</div>
+
+<!-- ============ INSTRUCTOR VIEW ============ -->
+<div class="screen" id="screen-instructor">
+  <div class="hq-header">
+    <div>
+      <p class="eyebrow" style="margin-bottom:2px;">HQ Command</p>
+      <h1>Live Mission Board</h1>
+    </div>
+    <div>
+      <button class="mini-btn" id="btn-refresh-board">↻ Refresh</button>
+      <button class="mini-btn" id="btn-reset-passcode">Change Passcode</button>
+      <button class="mini-btn" id="btn-wipe-all" style="border-color:#F5CDD3;color:#B2455A;">Wipe All Progress</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto; border-radius:12px;">
+  <table class="leaderboard">
+    <thead>
+      <tr><th>Codename</th><th>Real Name</th><th>Reg No.</th><th>Progress</th><th>Status</th><th>Controls</th></tr>
+    </thead>
+    <tbody id="leaderboard-body"></tbody>
+  </table>
+  </div>
+  <p style="margin-top:22px;"><a href="#" class="back-link" id="link-hq-exit">← Exit HQ</a></p>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div class="screen" id="screen-main">
+  <div class="topbar">
+    <div class="agent-id">AGENT <b id="hdr-codename">—</b></div>
+    <div class="progress-wrap">
+      <span class="mono" id="hdr-progress-label" style="font-size:11px;color:var(--text-dim);">0/6</span>
+      <div class="progress-track"><div class="progress-fill" id="hdr-progress-fill" style="width:0%;"></div></div>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <h3>Case File Index</h3>
+      <div id="sidebar-items"></div>
+    </div>
+    <div class="content" id="mission-content"></div>
+  </div>
+</div>
+
+<!-- ============ COMPLETE ============ -->
+<div class="screen" id="screen-complete">
+  <div class="cert">
+    <div class="gold-seal">🏅</div>
+    <p class="eyebrow" style="justify-content:center;">Case File 7742 — Closed</p>
+    <h1>Operation Complete</h1>
+    <p style="font-size:14px;color:#5a4a38;">Agent <b id="cert-codename"></b> has successfully completed all six missions of the Array Intelligence Division and demonstrated mastery of one-dimensional and two-dimensional array operations.</p>
+    <p style="font-size:12px;color:#8a7a5f;margin-top:20px;">Debrief with your instructor for your final rank.</p>
+  </div>
+</div>
+
+<div class="stamp-overlay" id="stamp-overlay"><div class="stamp" id="stamp-text">UNLOCKED</div></div>
+
+<div class="egg-overlay" id="egg-overlay">
+  <div class="egg-card">
+    <div class="icon">🕵️‍♀️</div>
+    <h3>HIDDEN CLEARANCE FILE</h3>
+    <p id="egg-message"></p>
+    <button id="egg-close">Close File</button>
+  </div>
+</div>
+
+<div class="venture-footer">a <b>g2r2</b> venture</div>
+
+<script>
+const ADJ = ["Crimson","Shadow","Silent","Iron","Ghost","Phantom","Obsidian","Velvet","Arctic","Rogue","Silver","Midnight","Scarlet","Viper","Onyx","Falcon-Eyed","Steel"];
+const NOUN = ["Falcon","Fox","Cobra","Raven","Wolf","Hawk","Panther","Lynx","Sparrow","Jackal","Kestrel","Mongoose","Osprey","Puma","Wren","Serpent","Condor"];
+
+function hashStr(s){ let h=0; for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; } return h; }
+function codenameFor(name){
+  const h = hashStr(name.trim().toLowerCase());
+  const a = ADJ[h % ADJ.length];
+  const n = NOUN[Math.floor(h/7) % NOUN.length];
+  return a + " " + n;
+}
+
+// ---------------- MISSION DATA ----------------
+const MISSIONS = [
+{
+  id:0, key:"orientation", title:"Academy Orientation", tag:"Briefing · No checkpoint",
+  theoryTitle:"Why Arrays Exist",
+  theory:`
+    <p>Imagine you're tracking 6 suspects. Without arrays, you'd need 6 separate variables: <span class="mono">suspect1, suspect2, suspect3...</span> Now imagine tracking 500. That approach collapses instantly — you can't loop over 500 hand-named variables.</p>
+    <p><b>An array is a single named block of contiguous memory that holds many values of the same type, each reachable by an index number.</b></p>
+    <ul>
+      <li><b>Contiguous memory</b> — all elements sit back-to-back in RAM, which is why <span class="mono">arr[i]</span> access is instant (O(1)) — the computer just calculates an address, it doesn't search.</li>
+      <li><b>Indexing starts at 0.</b> <span class="mono">arr[0]</span> is the first element. This trips up every new agent — memorize it now.</li>
+      <li><b>Fixed size.</b> A plain C++ array's size is set at declaration and can't grow. That constraint is a feature: it's what makes the memory layout predictable and fast.</li>
+      <li><b>Why it matters in the real world:</b> images are 2D arrays of pixel values, audio is an array of samples, spreadsheets are 2D arrays of cells, every leaderboard/database table is built on array-like structures underneath. Arrays are the foundation every other data structure (stacks, queues, matrices, even hash tables) is built on top of.</li>
+    </ul>
+    <p><b>Declaring one:</b></p>
+    <div class="code-spec">int suspectIDs[6] = {23, 87, 45, 12, 76, 34};
+// suspectIDs[0] is 23, suspectIDs[5] is 34
+// suspectIDs[6] does NOT exist -- reading it is undefined behavior
+// (a classic security leak: reading memory you don't have clearance for)</div>
+  `,
+  task:null
+},
+{
+  id:1, key:"firstcontact", title:"Mission 1 · First Contact", tag:"1D Arrays · Declare & Access",
+  theoryTitle:"Intel: Reading a Single Element",
+  theory:`
+    <p>Before you loop through anything, get comfortable reading <i>one</i> element at a time. <span class="mono">arr[i]</span> gives you the value sitting at position <span class="mono">i</span> — nothing more complicated than that. No loop needed yet.</p>
+    <ul>
+      <li>Indexes count from <b>0</b>, not 1. In a 5-element array, valid indexes are <span class="mono">0, 1, 2, 3, 4</span>.</li>
+      <li>You can read and combine elements directly: <span class="mono">int x = arr[1] + arr[3];</span></li>
+    </ul>
+  `,
+  task:`
+    <p>Your first dead-drop contains 5 clearance codes:</p>
+    <div class="code-spec">int codes[5] = {12, 45, 78, 33, 90};</div>
+    <p>Without using a loop, write a program that prints <span class="mono">codes[1]</span>, then prints <span class="mono">codes[3]</span>, then prints their <b>sum</b>.</p>
+    <p>Type the final sum below.</p>
+  `,
+  hint:"codes[1] is the 2nd element (index 1 = 45), codes[3] is the 4th element (index 3 = 33). Just add those two values directly — no loop required for this one.",
+  answer:"78"
+},
+{
+  id:2, key:"recon", title:"Mission 2 · Recon", tag:"1D Arrays · Traversal",
+  theoryTitle:"Intel: Traversal & Accumulation",
+  theory:`
+    <p>To process every element, you loop from index <span class="mono">0</span> to <span class="mono">size-1</span>. This is called <b>traversal</b>. Combine it with a running total variable (an <b>accumulator</b>) and you can summarize an entire array in one pass — O(n) time, one loop.</p>
+    <ul><li>Pattern: <span class="mono">int total = 0; for(int i=0;i<n;i++) total += arr[i];</span></li></ul>
+  `,
+  task:`
+    <p>Declare an integer array of 6 surveillance IDs:</p>
+    <div class="code-spec">int ids[6] = {23, 87, 45, 12, 76, 34};</div>
+    <p>Write a program that traverses the array with a <span class="mono">for</span> loop, prints each ID with its index (e.g. <span class="mono">"Index 0: 23"</span>), and then prints the <b>total surveillance value</b> — the sum of all 6 IDs.</p>
+    <p>Run it in your IDE. Type the final total below.</p>
+  `,
+  hint:"Set up int total = 0; before the loop. Inside for(int i=0; i<6; i++), do total += ids[i]; and print ids[i] on each pass. Print total after the loop ends.",
+  answer:"277"
+},
+{
+  id:3, key:"molehunt", title:"Mission 3 · The Mole Hunt", tag:"1D Arrays · Linear Search",
+  theoryTitle:"Intel: Linear Search",
+  theory:`
+    <p>To find a specific value, check each element one by one until you find a match. This is <b>linear search</b> — O(n) worst case, since in the worst case you check every element. It's the most basic search, but it's the ancestor of every faster search technique (binary search, hashing) you'll learn later.</p>
+    <ul><li>Return the <b>index</b> where the target is found, or a sentinel like <span class="mono">-1</span> if it's not present at all.</li></ul>
+  `,
+  task:`
+    <p>You've intercepted a list of agent codes. One of them belongs to a double agent — the mole.</p>
+    <div class="code-spec">int codes[7] = {104, 220, 358, 91, 467, 512, 233};
+int mole = 467;</div>
+    <p>Write a linear search that loops through <span class="mono">codes[]</span> and prints the <b>index</b> at which <span class="mono">mole</span> is found.</p>
+  `,
+  hint:"Loop with for(int i=0; i<7; i++). Inside, check if(codes[i] == mole) — when true, print i and you're done. Walk through the array by hand first if you're unsure: index 0 is 104, index 1 is 220...",
+  answer:"4"
+},
+{
+  id:4, key:"decode", title:"Mission 4 · Decode", tag:"1D Arrays · Min / Max",
+  theoryTitle:"Intel: Finding Extremes in One Pass",
+  theory:`
+    <p>Finding the maximum or minimum doesn't require sorting — that would waste time. Instead, assume the first element is the max (and the min), then walk the rest of the array once, updating your answer whenever you see something bigger (or smaller). One loop, O(n), done.</p>
+  `,
+  task:`
+    <p>A scrambled set of intercepted signal codes:</p>
+    <div class="code-spec">int codes[6] = {56, 12, 78, 34, 90, 23};</div>
+    <p>Write a program that finds the <b>maximum</b> and <b>minimum</b> values in the array in a single pass (no sorting), then prints <span class="mono">max - min</span>.</p>
+  `,
+  hint:"Start with int maxV = codes[0]; int minV = codes[0]; before the loop. Then for each element, if it's bigger than maxV update maxV, if it's smaller than minV update minV. Print maxV - minV at the end.",
+  answer:"78"
+},
+{
+  id:5, key:"sortintel", title:"Mission 5 · Sort the Intel", tag:"1D Arrays · Sorting",
+  theoryTitle:"Intel: Sorting Basics",
+  theory:`
+    <p>Sorted data is far easier to act on — prioritized threats, ranked scores, alphabetized names. <b>Bubble sort</b> repeatedly compares adjacent elements and swaps them if they're out of order, "bubbling" the largest value to the end each pass. It's O(n²) — not the fastest (advanced agents later learn O(n log n) techniques like merge sort and quicksort) — but it's the clearest way to understand <i>why</i> sorting works before you optimize it.</p>
+  `,
+  task:`
+    <p>Raw, unsorted intel priority scores:</p>
+    <div class="code-spec">int scores[6] = {45, 12, 67, 3, 89, 21};</div>
+    <p>Write a bubble sort (or any sort you know) to sort the array in <b>ascending</b> order. Then print the value now sitting at <span class="mono">scores[2]</span> (index 2, after sorting).</p>
+  `,
+  hint:"Use two nested loops. In the inner loop, compare scores[j] and scores[j+1] — if scores[j] > scores[j+1], swap them. Repeat the whole pass 5-6 times to guarantee everything settles into order, then print scores[2].",
+  answer:"21"
+},
+{
+  id:6, key:"grid", title:"Mission 6 · Grid Coordinates", tag:"2D Arrays · Traversal",
+  theoryTitle:"Intel: Arrays of Arrays",
+  theory:`
+    <p>A 2D array is a grid: rows and columns, declared as <span class="mono">int grid[rows][cols]</span>. Internally it's still contiguous memory laid out row by row (<b>row-major order</b>) — row 0's elements, then row 1's, and so on. To visit every cell you nest two loops: the outer loop walks rows, the inner loop walks columns.</p>
+    <ul><li>Real-world 2D arrays: images (pixels), spreadsheets, game boards, GPS/heatmap grids, seating charts.</li></ul>
+  `,
+  task:`
+    <p>A 3×3 surveillance grid, each cell an activity score:</p>
+    <div class="code-spec">int grid[3][3] = {
+  {5, 3, 8},
+  {2, 9, 1},
+  {7, 4, 6}
+};</div>
+    <p>Write nested loops to traverse the whole grid and print the <b>sum of every cell</b>.</p>
+  `,
+  hint:"Outer loop for(int i=0;i<3;i++) walks rows, inner loop for(int j=0;j<3;j++) walks columns. Add grid[i][j] to a running total each time the inner loop runs.",
+  answer:"45"
+},
+{
+  id:7, key:"finalop", title:"Mission 7 · Final Op", tag:"2D Arrays · Diagonal Cipher",
+  theoryTitle:"Intel: Matrix Operations",
+  theory:`
+    <p>Matrices (2D arrays) are the backbone of graphics, cryptography, and machine learning — every image filter, encryption transform, and neural network layer is built on matrix/array operations. One classic operation: the <b>main diagonal</b>, where row index equals column index (<span class="mono">grid[i][i]</span>).</p>
+    <p>This is your final op — combine everything: declare, traverse, and extract meaning from a 2D array, just like you did with 1D arrays in Missions 1–5.</p>
+  `,
+  task:`
+    <p>The enemy's cipher key, a 4×4 matrix:</p>
+    <div class="code-spec">int cipher[4][4] = {
+  {1, 2, 3, 4},
+  {5, 6, 7, 8},
+  {9, 10, 11, 12},
+  {13, 14, 15, 16}
+};</div>
+    <p>Write a loop that sums only the <b>main diagonal</b> (<span class="mono">cipher[i][i]</span> for each <span class="mono">i</span>) and prints the total. That total is the cipher key.</p>
+  `,
+  hint:"You only need one loop here, not two: for(int i=0;i<4;i++), add cipher[i][i] to your total each time. The diagonal is where row and column indexes match.",
+  answer:"34"
+}
+];
+
+// ---------------- STATE ----------------
+let agent = null; // {name, reg, codename}
+let agentData = null; // {name, codename, reg, unlocked, completed:[], lastActive}
+
+function $(id){ return document.getElementById(id); }
+function showScreen(id){
+  const FLEX_SCREENS = ['screen-login','screen-instructor-login','screen-complete'];
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const el = $(id);
+  el.classList.add('active');
+  el.style.display = FLEX_SCREENS.includes(id) ? 'flex' : 'block';
+}
+
+// ---------------- LOGIN ----------------
+function updatePreview(){
+  const name = $('in-name').value.trim();
+  const box = $('codename-preview');
+  if(name.length>1){
+    box.style.display='block';
+    box.innerHTML = 'Cover identity: <b>Agent ' + codenameFor(name) + '</b>';
+  } else {
+    box.style.display='none';
+  }
+}
+$('in-name').addEventListener('input', updatePreview);
+
+$('btn-enlist').addEventListener('click', async ()=>{
+  const name = $('in-name').value.trim();
+  const reg = $('in-reg').value.trim();
+  if(!name || !reg){ alert('Enter both your name and register number, agent.'); return; }
+  const btn = $('btn-enlist');
+  btn.disabled = true; btn.textContent = 'Verifying credentials…';
+  try{
+    const codename = codenameFor(name);
+    agent = { name, reg, codename };
+    await loadOrCreateAgentData();
+    showScreen('screen-main');
+    renderAll();
+  }catch(err){
+    console.error('Enlist failed', err);
+    alert('Something went wrong starting your mission. Please try again.');
+  }finally{
+    btn.disabled = false; btn.textContent = 'Generate Cover Identity →';
+  }
+});
+
+async function sha256Hex(str){
+  try{
+    if(window.crypto && window.crypto.subtle && window.crypto.subtle.digest){
+      const enc = new TextEncoder().encode(str);
+      const buf = await window.crypto.subtle.digest('SHA-256', enc);
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+  }catch(e){ console.error('sha256 failed, using fallback hash', e); }
+  // Fallback: not cryptographically strong, but never throws and never stores plaintext.
+  let h1 = 0, h2 = 0;
+  for(let i=0;i<str.length;i++){
+    h1 = (Math.imul(h1, 31) + str.charCodeAt(i)) | 0;
+    h2 = (Math.imul(h2, 131) + str.charCodeAt(i) * (i+7)) | 0;
+  }
+  return 'fb_' + (h1>>>0).toString(16) + (h2>>>0).toString(16) + '_' + str.length;
+}
+
+let hqSetupMode = false;
+let hqFailedAttempts = 0;
+let hqLockedUntil = 0;
+
+async function refreshHqLoginMode(){
+  let hash = null;
+  try{
+    const res = await window.storage.get('hq:passcode_hash', true);
+    hash = res ? res.value : null;
+  }catch(e){ hash = null; }
+  hqSetupMode = !hash;
+  if(hqSetupMode){
+    $('hq-eyebrow').textContent = 'First-Time Setup';
+    $('hq-title').textContent = 'Create HQ Passcode';
+    $('hq-sub').textContent = 'No passcode exists yet. Choose one now — it will only ever be stored in scrambled form.';
+    $('hq-label').textContent = 'New Passcode';
+    $('hq-hint').style.display = 'block';
+    $('btn-hq-enter').textContent = 'Set Passcode & Enter HQ →';
+  } else {
+    $('hq-eyebrow').textContent = 'Restricted';
+    $('hq-title').textContent = 'HQ Access';
+    $('hq-sub').textContent = 'Instructor passcode required to view the live mission board.';
+    $('hq-label').textContent = 'Passcode';
+    $('hq-hint').style.display = 'none';
+    $('btn-hq-enter').textContent = 'Enter HQ →';
+  }
+  $('in-passcode').value = '';
+  $('hq-lockout').style.display = 'none';
+}
+
+$('link-hq').addEventListener('click', async (e)=>{
+  e.preventDefault();
+  showScreen('screen-instructor-login');
+  try{ await refreshHqLoginMode(); }
+  catch(err){ console.error('HQ mode check failed', err); }
+});
+$('link-back-login').addEventListener('click', (e)=>{ e.preventDefault(); showScreen('screen-login'); });
+$('link-hq-exit').addEventListener('click', (e)=>{ e.preventDefault(); showScreen('screen-login'); });
+
+$('btn-hq-enter').addEventListener('click', async ()=>{
+  const now = Date.now();
+  if(now < hqLockedUntil){
+    const secs = Math.ceil((hqLockedUntil-now)/1000);
+    $('hq-lockout').style.display = 'block';
+    $('hq-lockout').textContent = 'Too many attempts. Try again in ' + secs + 's.';
+    return;
+  }
+  const entered = $('in-passcode').value;
+  if(!entered){ return; }
+  const btn = $('btn-hq-enter');
+  btn.disabled = true;
+  try{
+    if(hqSetupMode){
+      const hash = await sha256Hex(entered);
+      try{ await window.storage.set('hq:passcode_hash', hash, true); }catch(e){ console.error('could not persist passcode', e); }
+      showScreen('screen-instructor');
+      await renderLeaderboard();
+      return;
+    }
+    let storedHash = null;
+    try{
+      const res = await window.storage.get('hq:passcode_hash', true);
+      storedHash = res ? res.value : null;
+    }catch(e){ console.error('could not read passcode', e); }
+    const enteredHash = await sha256Hex(entered);
+    if(storedHash && enteredHash === storedHash){
+      hqFailedAttempts = 0;
+      showScreen('screen-instructor');
+      await renderLeaderboard();
+    } else {
+      hqFailedAttempts++;
+      if(hqFailedAttempts >= 5){
+        hqLockedUntil = Date.now() + 30000;
+        hqFailedAttempts = 0;
+        $('hq-lockout').style.display = 'block';
+        $('hq-lockout').textContent = 'Too many attempts. Locked for 30s.';
+      } else {
+        $('hq-lockout').style.display = 'block';
+        $('hq-lockout').textContent = 'Incorrect passcode. (' + (5-hqFailedAttempts) + ' attempts left before lockout)';
+      }
+    }
+  }catch(err){
+    console.error('HQ login failed', err);
+    $('hq-lockout').style.display = 'block';
+    $('hq-lockout').textContent = 'Something went wrong. Please try again.';
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+// ---------------- STORAGE ----------------
+async function loadOrCreateAgentData(){
+  const key = 'agent:' + agent.reg;
+  try{
+    const res = await window.storage.get(key, true);
+    if(res && res.value){
+      agentData = JSON.parse(res.value);
+      agentData.name = agent.name; agentData.codename = agent.codename;
+    } else {
+      throw new Error('none');
+    }
+  } catch(e){
+    agentData = { name:agent.name, codename:agent.codename, reg:agent.reg, unlocked:0, completed:[], lastActive:Date.now() };
+  }
+  await saveAgentData();
+}
+async function saveAgentData(){
+  agentData.lastActive = Date.now();
+  const payload = JSON.stringify(agentData);
+  const key = 'agent:' + agent.reg;
+  try{
+    await window.storage.set(key, payload, true);
+  }catch(e1){
+    // Transient storage hiccups happen occasionally — retry once quietly before giving up.
+    await new Promise(r=>setTimeout(r, 400));
+    try{
+      await window.storage.set(key, payload, true);
+    }catch(e2){
+      // Progress still lives in memory for this session even if sync to the shared board fails.
+    }
+  }
+}
+
+// ---------------- MAIN RENDER ----------------
+let currentViewIndex = 0;
+
+function renderAll(){
+  currentViewIndex = Math.min(agentData.unlocked, MISSIONS.length-1);
+  $('hdr-codename').textContent = agentData.codename;
+  const doneCount = agentData.completed.length;
+  $('hdr-progress-label').textContent = doneCount + '/' + (MISSIONS.length-1);
+  $('hdr-progress-fill').style.width = Math.round((doneCount/(MISSIONS.length-1))*100) + '%';
+  renderSidebar();
+  renderMission(currentViewIndex);
+}
+
+function renderSidebar(){
+  const wrap = $('sidebar-items');
+  wrap.innerHTML = '';
+  MISSIONS.forEach((m, idx)=>{
+    const done = agentData.completed.includes(idx);
+    const locked = idx > agentData.unlocked;
+    const div = document.createElement('div');
+    let cls = 'case-item';
+    if(done) cls += ' done';
+    if(locked) cls += ' locked';
+    if(idx === currentViewIndex) cls += ' current';
+    if(!locked && idx !== currentViewIndex) cls += ' unlocked-nav';
+    div.className = cls;
+    div.innerHTML = '<span class="num">' + (idx===0?'0':idx) + '</span><span>' + m.title.replace(/^Mission \d+ · /,'') + '</span>';
+    if(!locked){
+      div.addEventListener('click', ()=>{ currentViewIndex = idx; renderSidebar(); renderMission(idx); });
+    }
+    wrap.appendChild(div);
+  });
+}
+
+function renderMission(idx){
+  const m = MISSIONS[idx];
+  const el = $('mission-content');
+  const isDone = agentData.completed.includes(idx);
+  let html = '';
+  html += '<div class="mission-tag">' + m.tag + '</div>';
+  html += '<h1>' + m.title + '</h1>';
+  html += '<div class="brief-box"><h4>📂 ' + m.theoryTitle + '</h4>' + m.theory + '</div>';
+
+  if(m.task){
+    html += '<div class="task-box"><h4>🎯 Your Task</h4>' + m.task + '</div>';
+    if(m.hint){
+      html += '<details class="hint-box"><summary>💡 Need a hint?</summary><p>' + m.hint + '</p></details>';
+    }
+    if(!isDone){
+      html += '<div class="answer-row"><input type="text" id="answer-input" placeholder="Type the output your program printed..."><button class="btn btn-submit" id="btn-submit">Submit Intel</button></div>';
+      html += '<div class="feedback" id="feedback"></div>';
+    } else {
+      html += '<div class="feedback ok" style="display:block;">✔ Intel confirmed. This mission is complete.</div>';
+      if(idx < MISSIONS.length-1){
+        html += '<button class="next-btn" id="btn-next" style="display:inline-block;">Proceed to next mission →</button>';
+      } else {
+        html += '<button class="next-btn" id="btn-finish" style="display:inline-block;">Close case file →</button>';
+      }
+    }
+  } else {
+    // orientation, no task
+    if(agentData.unlocked === 0 && !agentData.completed.includes(0)){
+      html += '<button class="next-btn" id="btn-begin" style="display:inline-block;">Begin Mission 1 →</button>';
+    } else {
+      html += '<button class="next-btn" id="btn-next" style="display:inline-block;">Proceed →</button>';
+    }
+  }
+  el.innerHTML = html;
+
+  const submitBtn = $('btn-submit');
+  if(submitBtn){
+    submitBtn.addEventListener('click', ()=>checkAnswer(idx));
+    $('answer-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') checkAnswer(idx); });
+  }
+  const beginBtn = $('btn-begin');
+  if(beginBtn){ beginBtn.addEventListener('click', ()=>advanceFrom(0)); }
+  const nextBtn = $('btn-next');
+  if(nextBtn){ nextBtn.addEventListener('click', ()=>{ currentViewIndex = Math.min(idx+1, MISSIONS.length-1); renderSidebar(); renderMission(currentViewIndex); }); }
+  const finishBtn = $('btn-finish');
+  if(finishBtn){ finishBtn.addEventListener('click', ()=>{ $('cert-codename').textContent = agentData.codename; showScreen('screen-complete'); }); }
+}
+
+function normalize(v){ return v.trim().replace(/^0+(?=\d)/,''); }
+
+async function checkAnswer(idx){
+  const m = MISSIONS[idx];
+  const input = $('answer-input');
+  const val = normalize(input.value);
+  const expected = normalize(m.answer);
+  const fb = $('feedback');
+  const correct = val !== '' && (val === expected || parseFloat(val) === parseFloat(expected));
+  if(correct){
+    fb.className = 'feedback ok';
+    fb.style.display = 'block';
+    fb.textContent = '✔ Correct. Intel verified.';
+    if(!agentData.completed.includes(idx)) agentData.completed.push(idx);
+    if(agentData.unlocked === idx) agentData.unlocked = Math.min(idx+1, MISSIONS.length-1);
+    await saveAgentData();
+    flashStamp(idx === MISSIONS.length-1 ? 'CASE CLOSED' : 'UNLOCKED');
+    renderSidebar();
+    setTimeout(()=>{
+      $('hdr-progress-label').textContent = agentData.completed.length + '/' + (MISSIONS.length-1);
+      $('hdr-progress-fill').style.width = Math.round((agentData.completed.length/(MISSIONS.length-1))*100) + '%';
+      renderMission(idx);
+    }, 900);
+  } else {
+    fb.className = 'feedback err';
+    fb.style.display = 'block';
+    fb.textContent = '✘ Not a match. Re-check your program logic and try again.';
+  }
+}
+
+async function advanceFrom(idx){
+  if(agentData.unlocked === idx) agentData.unlocked = Math.min(idx+1, MISSIONS.length-1);
+  if(!agentData.completed.includes(idx)) agentData.completed.push(idx);
+  await saveAgentData();
+  currentViewIndex = agentData.unlocked;
+  renderSidebar();
+  renderMission(currentViewIndex);
+}
+
+// ---------------- EASTER EGG ----------------
+const EGG_FACTS = [
+  "Real agents' secret: the word \"array\" entered computing in the 1940s, but it's originally a military term for troops drawn up in battle order — rows and columns, just like your grid[3][3].",
+  "Off-the-record: arr[-1] in C++ won't throw an error. It'll just hand you whatever garbage byte lives in nearby memory. That silent failure has caused some of the most infamous security exploits in history. Respect the bounds, agent.",
+  "Classified footnote: the first commercial computer language to formally support arrays was FORTRAN, in 1957 — built for scientists doing exactly what you're doing now, tracking rows of numbers efficiently.",
+  "Field trivia: a chessboard, a spreadsheet, and a JPEG image are all, underneath, just 2D arrays wearing different disguises. You've been training on the same structure that renders every photo on the internet."
+];
+const EGG_SCOLDS = [
+  "Okay, agent. That's enough clicking. Stop clicking this and go do your work.",
+  "HQ has noticed unusual clicking activity at this location. Reassignment: go finish your mission.",
+  "You've now clicked more times than you've written lines of code today. Fix that ratio.",
+  "This stamp is decorative. Your unfinished mission, however, is not. Go.",
+  "Agent, the mole isn't hiding in this button. Go find it in your array.",
+  "Persistent. Respectable. Still not going to help you finish Mission 4. Back to work."
+];
+let eggTriggerCount = 0;
+let eggBuffer = "";
+document.addEventListener('keydown', (e)=>{
+  if(e.key.length === 1){ eggBuffer = (eggBuffer + e.key).slice(-10).toLowerCase(); }
+  if(eggBuffer.includes('arr007')){ triggerEgg(); eggBuffer = ""; }
+});
+function triggerEgg(){
+  eggTriggerCount++;
+  let msg;
+  if(eggTriggerCount <= 3){
+    msg = EGG_FACTS[Math.floor(Math.random()*EGG_FACTS.length)];
+  } else {
+    msg = EGG_SCOLDS[Math.floor(Math.random()*EGG_SCOLDS.length)];
+  }
+  $('egg-message').textContent = msg;
+  $('egg-overlay').style.display = 'flex';
+}
+$('egg-close').addEventListener('click', ()=>{ $('egg-overlay').style.display = 'none'; });
+
+let stampClicks = 0;
+window.addEventListener('load', ()=>{
+  const card = document.querySelector('.dossier-card');
+  if(card){
+    card.addEventListener('click', (e)=>{
+      const rect = card.getBoundingClientRect();
+      // only counts clicks near the top-right CLASSIFIED stamp corner
+      if(e.clientX - rect.left > rect.width - 90 && e.clientY - rect.top < 60){
+        stampClicks++;
+        if(stampClicks >= 3){ triggerEgg(); stampClicks = 0; }
+      }
+    });
+  }
+});
+
+function flashStamp(text){
+  $('stamp-text').textContent = text;
+  const overlay = $('stamp-overlay');
+  overlay.style.display = 'flex';
+  $('stamp-text').style.animation = 'none';
+  void $('stamp-text').offsetWidth;
+  $('stamp-text').style.animation = '';
+  setTimeout(()=>{ overlay.style.display='none'; }, 900);
+}
+
+// ---------------- INSTRUCTOR ----------------
+$('btn-refresh-board').addEventListener('click', renderLeaderboard);
+$('btn-reset-passcode').addEventListener('click', async ()=>{
+  if(!confirm('Clear the current HQ passcode? You will be asked to set a new one next time HQ is opened.')) return;
+  try{ await window.storage.delete('hq:passcode_hash', true); }catch(e){}
+  alert('Passcode cleared. You will set a new one next time you open HQ Access.');
+});
+$('btn-wipe-all').addEventListener('click', async ()=>{
+  if(!confirm('Wipe ALL student progress? This cannot be undone.')) return;
+  try{
+    const list = await window.storage.list('agent:', true);
+    if(list && list.keys){
+      for(const k of list.keys){ await window.storage.delete(k, true); }
+    }
+  }catch(e){}
+  renderLeaderboard();
+});
+
+async function renderLeaderboard(){
+  const body = $('leaderboard-body');
+  body.innerHTML = '<tr><td colspan="6" class="mono" style="color:var(--text-dim);">Loading…</td></tr>';
+  let keys = [];
+  try{
+    const list = await window.storage.list('agent:', true);
+    keys = (list && list.keys) ? list.keys : [];
+  }catch(e){}
+  if(keys.length === 0){
+    body.innerHTML = '<tr><td colspan="6" class="mono" style="color:var(--text-dim);">No agents have registered yet.</td></tr>';
+    return;
+  }
+  const rows = [];
+  for(const k of keys){
+    try{
+      const res = await window.storage.get(k, true);
+      if(res && res.value) rows.push(JSON.parse(res.value));
+    }catch(e){}
+  }
+  rows.sort((a,b)=> (b.completed?.length||0) - (a.completed?.length||0));
+  body.innerHTML = '';
+  rows.forEach(r=>{
+    const doneCount = (r.completed||[]).length;
+    const total = MISSIONS.length - 1;
+    const isComplete = doneCount >= total;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b style="color:var(--gold);font-family:'Special Elite',monospace;">${r.codename}</b></td>
+      <td>${r.name}</td>
+      <td class="mono">${r.reg}</td>
+      <td class="mono">${doneCount}/${total}</td>
+      <td><span class="badge ${isComplete?'complete':'progress'}">${isComplete?'COMPLETE':'IN PROGRESS'}</span></td>
+      <td>
+        <button class="mini-btn" data-action="unlock" data-reg="${r.reg}">Force Unlock</button>
+        <button class="mini-btn" data-action="reset" data-reg="${r.reg}">Reset</button>
+      </td>`;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('button[data-action]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const reg = btn.getAttribute('data-reg');
+      const action = btn.getAttribute('data-action');
+      const key = 'agent:' + reg;
+      try{
+        const res = await window.storage.get(key, true);
+        if(!res || !res.value) return;
+        const data = JSON.parse(res.value);
+        if(action === 'unlock'){
+          data.unlocked = Math.min(data.unlocked+1, MISSIONS.length-1);
+        } else if(action === 'reset'){
+          data.unlocked = 0; data.completed = [];
+        }
+        await window.storage.set(key, JSON.stringify(data), true);
+        renderLeaderboard();
+      }catch(e){}
+    });
+  });
+}
+</script>
+</body>
+</html>
